@@ -115,7 +115,6 @@ workflow {
             "analyse_unclassified":params.analyse_unclassified,
             "stats": true,
             "fastcat_extra_args": fastcat_extra_args.join(" "),
-            "watch_path": false,
             "per_read_stats": false
         ])
     } else {
@@ -129,7 +128,6 @@ workflow {
             "return_fastq": true,
             "keep_unaligned": true,
             "stats": true,
-            "watch_path": false,
             "per_read_stats": false
         ])
     }

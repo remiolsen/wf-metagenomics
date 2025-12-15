@@ -8,10 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
-- Updated to wf-template v5.6.3 to maintain compliance with our latest wf-template standard, changing:
+- Updated to wf-template v5.7.0 to maintain compliance with our latest wf-template standard, changing:
   - Pipeline overview now appears before pipeline parameters in README.
   - ezCharts plotting library has been updated to 0.15.1, there are no user facing changes to plots.
   - Fastcat FASTQ pre-processing program has been updated to 0.24.2, it is more robust to malformed FASTQ input.
+  - CHANGELOG to be compliant with our formatting rules.
+
 
 ## [v2.14.1]
 This patch release of wf-metagenomics updates the AMR container image to ensure the workflow can be correctly executed on computers with ARM processors. Users do not need to adopt this release unless they are using the workflow on a computer with an ARM processor and make use of the AMR options.
@@ -281,7 +283,7 @@ New solutions for real time taxonomic classification are in development but user
 - Add ability to use an external kraken2 server.
 
 ## [v2.1.0]
-### Updated
+### Changed
 - New fastqingress.
 - New report with ezcharts.
 
@@ -423,5 +425,5 @@ New solutions for real time taxonomic classification are in development but user
 - Handle cyclic dag issue when taxonomy has duplicate names
 
 ## [v1.0.0]
-* First release.
+First release.
 
