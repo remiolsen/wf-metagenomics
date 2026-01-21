@@ -12,3 +12,9 @@ Additional features:
     - An abundance table with counts per taxa in all the samples.
     - Interactive sankey and sunburst plots to explore the different identified lineages.
     - A bar plot comparing the abundances of the most abundant taxa in all the samples.
+
+
+<figure>
+<img src="docs/images/wf-metagenomics.tube.svg" alt="wf-metagenomics overview schematic."/>
+<figcaption>Schematic depicting wf-metagenomics workflow.</figcaption>
+</figure>

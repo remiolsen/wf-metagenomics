@@ -22,6 +22,11 @@ Additional features:
     - A bar plot comparing the abundances of the most abundant taxa in all the samples.
 
 
+<figure>
+<img src="docs/images/wf-metagenomics.tube.svg" alt="wf-metagenomics overview schematic."/>
+<figcaption>Schematic depicting wf-metagenomics workflow.</figcaption>
+</figure>
+
 
 
 ## Compute requirements
