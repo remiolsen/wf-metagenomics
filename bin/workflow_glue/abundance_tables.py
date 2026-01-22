@@ -1,23 +1,72 @@
 #!/usr/bin/env python
 """Create tables for the report."""
-
 import json
 from pathlib import Path
 import re
 
 import anytree
 import pandas as pd
-
+from workflow_glue.report_utils.report_utils import (
+    RANK_ORDER,
+    RANK_REPORT_ABB,
+    RANKS_ABB,
+)
 from .util import wf_parser  # noqa: ABS101
 
-rank_order = {
-    'superkingdom': 1, 'kingdom': 2, 'phylum': 3, 'class': 4, 'order': 5, 'family': 6,
-    'genus': 7, 'species': 8}
-RANKS = list(rank_order.keys())
-ranks_abbrev = {
-    "D": "superkingdom", "K": "kingdom", "P": "phylum", "C": "class",
-    "O": "order", "F": "family", "G": "genus", "S": "species"
-}
+
+def fill_down_to_rank(root, target_rank):
+    """
+    Extend leaf nodes to the target taxonomic rank with placeholder names.
+
+    For each leaf node with a rank < target_rank, create intermediate nodes
+    down to target_rank. Placeholder names include the rank abbreviation as a suffix
+    (e.g., 'Unclassified_Genus_(o)') to indicate unclassified taxa at those levels.
+    :param root(tree): tree
+    :param target_rank (str): requested rank
+    :return: tree
+    """
+    suffix_re = re.compile(r"(_\([dkpcofgs]\))$")  # match _(o)
+    for node in anytree.PreOrderIter(root):
+        if node.rank is None:
+            continue
+
+        if node.children or node.rank >= target_rank:
+            continue
+
+        parent = node
+
+        # Keeps name if it already has a suffix
+        if suffix_re.search(node.name):
+            placeholder_name = node.name
+        else:
+            base = node.name
+            if base.startswith("Unclassified_"):
+                base = base.replace("Unclassified_", "", 1)
+            # For unclassified nodes, use parent's rank as the suffix
+            # (unclassified nodes lack their own rank)
+            if (
+                node.name.startswith("Unclassified_")
+                and node.parent
+                and node.parent.rank is not None
+            ):
+                suffix = node.parent.rank
+            else:
+                suffix = node.rank
+
+            suffix = f"_({RANK_REPORT_ABB[suffix]})"
+            placeholder_name = f"Unclassified_{base}{suffix}"
+
+        # Fill down by adding the new name
+        parent = node
+        for r in range(node.rank + 1, target_rank + 1):
+            parent = anytree.Node(
+                placeholder_name,
+                parent=parent,
+                rank=r,
+                count=node.count
+            )
+
+    return root
 
 
 # READ INPUT DATA
@@ -71,13 +120,13 @@ def tax_tree(lineage_trees_dict):
                     # Check that parent belongs to immediate previous rank
                     # to avoid those cases in which some ranks are missing
                     # (e.g.: Wohlfahrtiimonas)
-                    diff_ranks = rank_order[taxon_data['rank']] - parent_node.rank
+                    diff_ranks = RANK_ORDER[taxon_data['rank']] - parent_node.rank
                     if diff_ranks == 1:  # Consecutive ranks
                         if 'uncultured' not in taxon:
                             node = anytree.Node(
                                 taxon, parent=parent_node,
                                 count=taxon_data['count'],
-                                rank=rank_order[taxon_data['rank']],
+                                rank=RANK_ORDER[taxon_data['rank']],
                             )
                         else:
                             # Keep the name of the previous rank to avoid duplicates
@@ -131,7 +180,7 @@ def tax_tree(lineage_trees_dict):
                         node = anytree.Node(
                             taxon, parent=node,
                             count=taxon_data['count'],
-                            rank=rank_order[taxon_data['rank']]
+                            rank=RANK_ORDER[taxon_data['rank']]
                             )
                         # Return to original parent node
                         parent_node = original_parent_node
@@ -142,14 +191,14 @@ def tax_tree(lineage_trees_dict):
                         node = anytree.Node(
                             taxon, parent=rootnode,
                             count=taxon_data['count'],
-                            rank=rank_order[taxon_data['rank']]
+                            rank=RANK_ORDER[taxon_data['rank']]
                             )
                     else:
                         # add it as the higher rank and copy it in downstrain levels
                         node = anytree.Node(
                             taxon, parent=rootnode,
                             count=taxon_data['count'],
-                            rank=rank_order['superkingdom']
+                            rank=RANK_ORDER['superkingdom']
                             )
                         # repeat the node
                         taxon_data['children'] = {
@@ -181,12 +230,13 @@ def check_counts(taxa_trees):
     # Gammaproteobacteria (c) = Enterobacterales (o) + found Order (o)
     # If not:
     # Gammaproteobacteria_unclassified (o) = Gammaproteobacteria (c) - sum(found order)
-
     for node in anytree.PreOrderIter(taxa_trees, maxlevel=taxa_trees.height):
         if sum([n.count for n in node.children]) != node.count:
             # Add unclassified node
             if not re.match('^Unclassified|^root', node.name):
-                unclassified_taxon = f'Unclassified_{node.name}'
+                unclassified_taxon = (
+                    f"Unclassified_{node.name}_({RANK_REPORT_ABB[node.rank]})"
+                )
                 counts = node.count - sum([n.count for n in node.children])
                 anytree.Node(
                     unclassified_taxon, parent=node, rank=node.rank + 1, count=counts)
@@ -228,8 +278,16 @@ def join_abundance_tables(taxa_trees, rank):
     """
     # Trees into tables
     tables = {}
+    target_rank_int = RANK_ORDER[rank]
     for s, t in taxa_trees.items():
-        tables[s] = prepare_taxa_table(check_counts(t), rank_order[rank])
+        t2 = check_counts(t)
+        t2 = fill_down_to_rank(t2, target_rank_int)
+        tables[s] = prepare_taxa_table(t2, target_rank_int)
+
+    tables = {k: v for k, v in tables.items() if v is not None}
+    if not tables:
+        return pd.DataFrame(columns=["tax", "total"])
+
     df_all = pd.concat(list(tables.values()), keys=list(tables.keys()))
     # Remove multiindex
     df_all_samples = df_all.reset_index().rename(columns={'level_0': 'sample'})
@@ -246,7 +304,7 @@ def main(args):
     """Run the entry point."""
     # Join taxonomy data
     all_json = parse_lineages(args.lineages)
-    rank = ranks_abbrev[args.taxonomic_rank]
+    rank = RANKS_ABB[args.taxonomic_rank]
     if all_json:
         # Extract all possible lineages
         allranks_tree = tax_tree(all_json)

@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased]
+## [v2.14.2]
 
 ### Changed
 - Updated to wf-template v5.7.0 to maintain compliance with our latest wf-template standard, changing:
@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Greengenes2 database: the database used in the recent [ZymoBIOMICS Microbial Communities with 16S dataset blog post](https://epi2me.nanoporetech.com/zymo_16s_2025.09/) is now available as "Greengenes2_plus".
 - Workflow overview diagram in the documentation.
 - Comprehensive database reference table to the README with citations and resource links.
+### Fixed
+- Missing ranks when the user-selected `taxonomic_rank` was deeper than the maximum rank available for a given taxon in the database.
 
 
 ## [v2.14.1]

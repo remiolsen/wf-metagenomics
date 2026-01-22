@@ -16,6 +16,9 @@ RANK_ORDER = {
     'superkingdom': 1, 'kingdom': 2, 'phylum': 3, 'class': 4, 'order': 5, 'family': 6,
     'genus': 7, 'species': 8}
 
+RANK_REPORT_ABB = {
+    1: 'd', 2: 'k', 3: 'p', 4: 'c', 5: 'o', 6: 'f', 7: 'g', 8: 's'}
+
 RANKS = list(RANK_ORDER.keys())
 
 RANKS_NO_SK_K = list(RANK_ORDER.keys())[2:]

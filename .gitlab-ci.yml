@@ -19,6 +19,14 @@ variables:
     PYTEST_CONTAINER_NAME: "wf-common"
     PYTEST_CONTAINER_CONFIG_KEY: "common_sha"
 
+## Specific tests for wf-metagenomics container
+pytest_wfcontainer:
+    extends: pytest
+    variables:
+        PYTEST_CONTAINER_NAME: "${CI_PROJECT_NAME}"
+        PYTEST_CONTAINER_CONFIG_KEY: "container_sha="
+        PYTEST_TESTS_PATH: "bin/workflow_glue/tests_wf"
+
 ## This test works with Standard-8 GB using a stored copy of Standard-8GB in S3.
 aws-run:
     variables:
