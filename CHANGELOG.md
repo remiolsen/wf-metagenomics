@@ -9,12 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Updated to wf-template v5.7.0 to maintain compliance with our latest wf-template standard, changing:
-  - Pipeline overview now appears before pipeline parameters in README.
-  - ezCharts plotting library has been updated to 0.15.1, there are no user facing changes to plots.
-  - Fastcat FASTQ pre-processing program has been updated to 0.24.2, it is more robust to malformed FASTQ input.
-  - CHANGELOG to be compliant with our formatting rules.
+    - Pipeline overview now appears before pipeline parameters in README.
+    - ezCharts plotting library has been updated to 0.15.1, there are no user facing changes to plots.
+    - Fastcat FASTQ pre-processing program has been updated to 0.24.2, it is more robust to malformed FASTQ input.
+    - CHANGELOG to be compliant with our formatting rules.
 ### Added
+- Greengenes2 database: the database used in the recent [ZymoBIOMICS Microbial Communities with 16S dataset blog post](https://epi2me.nanoporetech.com/zymo_16s_2025.09/) is now available as "Greengenes2_plus".
 - Workflow overview diagram in the documentation.
+- Comprehensive database reference table to the README with citations and resource links.
 
 
 ## [v2.14.1]

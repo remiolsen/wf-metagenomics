@@ -65,6 +65,7 @@ docker-run:
                 "report-many-samples",
                 # databases
                 "silva-kraken2", "silva-minimap2",
+                "greengenes-kraken2", "greengenes-minimap2",
                 # test combinations of databases
                 "exception-kraken2-reference", "exception-minimap2-database",
                 "exception-minimap2-igv-mmi-reference",
@@ -262,7 +263,6 @@ docker-run:
           NF_IGNORE_PROCESSES: "configure_igv,extractMinimap2Reads"
      - if: $MATRIX_NAME == "silva-kraken2"
        variables:
-          # simulate_samples.sh create the samples on the fly
           NF_PROCESS_FILES: >
             subworkflows/kraken_pipeline.nf
             lib/common.nf
@@ -273,7 +273,6 @@ docker-run:
           NF_IGNORE_PROCESSES: "configure_igv,output_kraken2_read_assignments"
      - if: $MATRIX_NAME == "silva-minimap2"
        variables:
-          # simulate_samples.sh create the samples on the fly
           NF_PROCESS_FILES: >
             subworkflows/minimap_pipeline.nf
             lib/common.nf
@@ -281,6 +280,27 @@ docker-run:
             --fastq="test_data/case01"
             -executor.\$$local.memory 16GB
             --database_set "SILVA_138_1"
+            --classifier minimap2
+          NF_IGNORE_PROCESSES: "configure_igv,extractMinimap2Reads,getAlignmentStats"
+     - if: $MATRIX_NAME == "greengenes-kraken2"
+       variables:
+          NF_PROCESS_FILES: >
+            subworkflows/kraken_pipeline.nf
+            lib/common.nf
+          NF_WORKFLOW_OPTS: >
+            --fastq="test_data/case01"
+            -executor.\$$local.memory 16GB
+            --database_set "Greengenes2_plus"
+          NF_IGNORE_PROCESSES: "configure_igv,output_kraken2_read_assignments"
+     - if: $MATRIX_NAME == "greengenes-minimap2"
+       variables:
+          NF_PROCESS_FILES: >
+            subworkflows/minimap_pipeline.nf
+            lib/common.nf
+          NF_WORKFLOW_OPTS: >
+            --fastq="test_data/case01"
+            -executor.\$$local.memory 16GB
+            --database_set "Greengenes2_plus"
             --classifier minimap2
           NF_IGNORE_PROCESSES: "configure_igv,extractMinimap2Reads,getAlignmentStats"
       ## Test invalid combinations
