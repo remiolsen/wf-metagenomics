@@ -22,9 +22,9 @@ process download_reference_ref2taxid {
         ref_basename = file(reference_url).Name
         ref2taxid_basename = file(ref2taxid_url).Name
     """
-    wget '${reference_url}'
-    wget '${ref2taxid_url}'
-    mkdir ${database_dir}_db
+    aws s3 cp --no-sign-request "${reference_url}" .
+    aws s3 cp --no-sign-request "${ref2taxid_url}" .
+    mkdir "${database_dir}_db"
     mv "${ref_basename}" ${database_dir}_db/
     mv "${ref2taxid_basename}" ${database_dir}_db/
     """
@@ -75,15 +75,15 @@ process unpack_download_kraken2_database {
     # Check if the folder is an url to fetch or a local path
     if ${url_database_boolean}
     then
-        wget '${database_url}'
+        aws s3 cp --no-sign-request "${database_url}" .
     fi
     if [[ ${db_basename} == *.tar.gz ]]
         then
-            mkdir ${database_dir}_db
+            mkdir "${database_dir}_db"
             tar xf ${db_basename} -C ${database_dir}_db
     elif [[ ${db_basename} == *.zip ]]
         then
-            mkdir ${db_basename}_db
+            mkdir "${db_basename}_db"
             unzip  ${db_basename} -d ${database_dir}_db
     else
         echo "Error: database is neither .tar.gz , .zip"
@@ -145,19 +145,19 @@ process download_unpack_taxonomy {
         String tax_basename = taxonomy_local.name != "OPTIONAL_FILE" ? taxonomy_local.toString(): file(taxonomy_url).Name
 
     """
-    # Check if the folder is an url to fetch or a local path 
+    # Check if the folder is an url to fetch or a local path
     if ${url_boolean}
     then
-        wget '${taxonomy_url}'
+        aws s3 cp --no-sign-request "${taxonomy_url}" .
     fi
     # Uncompress db
     if [[ "${tax_basename}" == *.tar.gz ]]
         then
-            mkdir ${taxonomy_dir}_db
+            mkdir "${taxonomy_dir}_db"
             tar xf "${tax_basename}" -C ${taxonomy_dir}_db
     elif [[ "${tax_basename}" == *.zip ]]
         then
-            mkdir ${taxonomy_dir}_db
+            mkdir "${taxonomy_dir}_db"
             unzip  "${tax_basename}" -d ${taxonomy_dir}_db
     else
             echo "Error: taxonomy is neither .tar.gz, .zip"
@@ -166,35 +166,6 @@ process download_unpack_taxonomy {
     fi
     """
 }
-
-//SILVA database
-process prepareSILVA {
-    storeDir {params.store_dir ? "${params.store_dir}/${params.database_set}" : null }
-    label "wfmetagenomics"
-    cpus 2
-    memory "2 GB"
-    input:
-        val bracken_length
-    output:
-        path "database/silva.fna", emit: reference
-        path "taxonomy", emit: taxonomy
-        path "database", emit: database
-        path "seqid2taxid.map", emit: ref2taxid
-        path "database/database*mers.kmer_distrib", emit: bracken_dist
-    script:
-    """
-    kraken2-build --db ${params.database_set} --special silva
-    bracken-build -d ${params.database_set} -t "${task.cpus}" -l ${bracken_length}
-    # Move all the files following other default databases:
-    mkdir database
-    mv ${params.database_set}/*.k2d database/
-    mv ${params.database_set}/library/silva.fna database/
-    mv ${params.database_set}/seqid2taxid.map .
-    mv ${params.database_set}/taxonomy taxonomy
-    mv ${params.database_set}/database${bracken_length}mers.kmer_distrib database/
-    """
-}
-
 
 
 workflow prepare_databases {
@@ -205,35 +176,17 @@ workflow prepare_databases {
     source_data_database
   main:
     log.info("Preparing databases.")
-    //SILVA database is built in the moment to avoid distributing its files
     if (params.database_set == "SILVA_138_1" ){
         log.info("Note: SILVA TaxIDs do not match NCBI TaxIDs")
-        log.info("Note: The database will be created from original files, which may make the wf run slower.")
-        // Create all the database for both pipelines.
-        if (params.classifier == "kraken2" && params.bracken_length){
-            bracken_length = params.bracken_length
-        } else if (params.classifier == "kraken2") {
-            bracken_length = 1000
-        } else {
-            bracken_length = 1000 //not used
-        }
-        silva = prepareSILVA(bracken_length)
-        reference_file = silva.reference
-        ref2taxid_file = silva.ref2taxid
-        taxonomy_dir = silva.taxonomy
-        database_dir = silva.database
         if (params.taxonomic_rank == 'S') {
             log.info("Note: SILVA database does not provide species, genus is the lowest taxonomic rank that can be used.")
             taxonomic_rank = 'G'
         } else{
             taxonomic_rank = params.taxonomic_rank
         }
-        if (params.classifier == 'kraken2') {
-            bracken_length = determine_bracken_length(params.database_set, database_dir).bracken_length_txt
-        }
-        database_set = params.database_set
-    } else{
+    } else {
         taxonomic_rank = params.taxonomic_rank
+    }
         // TAXONOMY: kraken2 and minimap2
         if (params.taxonomy) {
             log.info("Checking custom taxonomy mapping exists")
@@ -363,7 +316,7 @@ workflow prepare_databases {
             }
             bracken_length = determine_bracken_length(database_set, database_dir).bracken_length_txt
         }
-    }
+
     emit:
         taxonomy = taxonomy_dir
         ref2taxid = ref2taxid_file

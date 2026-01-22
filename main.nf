@@ -96,7 +96,7 @@ workflow {
         }
 
         def kraken_8GB_dbs = ["Standard-8", "PlusPF-8", "PlusPFP-8"]
-        def minimap_dbs = ["ncbi_16s_18s", "ncbi_16s_18s_28s_ITS", "SILVA_138_1"]
+        def minimap_dbs = ["ncbi_16s_18s", "ncbi_16s_18s_28s_ITS", "SILVA_138_1", "Greengenes2_plus"]
 
         if (!minimap_dbs.contains(source_name) && params.classifier == 'minimap2' && !params.reference){
             throw new Exception("Note: As the classifier parameter is set to `minimap2` the `database_set` parameter must be one of: $minimap_dbs. Use the `kraken2` classifier to access these databases: $kraken_8GB_dbs.")

@@ -33,6 +33,22 @@ The creation of alignment statistics plots can be enabled with the `minimap2_by_
 
 In addition, the user can output BAM files in a folder called `bams` by using the option `keep_bam`. If the user provides a custom database and uses the `igv` option, the workflow will also output the references with reads mappings, as well as an IGV configuration file. This configuration file allows the user to view the alignments in the EPI2ME Desktop Application in the Viewer tab. Note that the number of references can be reduced using the `abundance_threshold` option, which will select those references with a number of reads aligned higher than this value. Please, consider that the view of the alignment is highly dependent on the reference selected.
 
+
+#### 3.3 Databases
+There are different taxonomic databases available, and custom databases can be provided.
+The available databases are:
+
+| Database | Content | References | Taxonomy DB | Pipeline |
+| -------- | ------- | -------------------------- | ----------- | -------- |
+| [ncbi_16s_18s](https://www.ncbi.nlm.nih.gov/refseq/targetedloci/) | Archaeal, bacterial and fungal ribosomal RNA loci (16S rDNA, 18S rDNA (SSU)) | [Resources](https://www.ncbi.nlm.nih.gov/refseq/targetedloci/) | [2025-01-01](https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump_archive/)| Kraken2, minimap2 |
+| [ncbi_16s_18s_28s_ITS](https://www.ncbi.nlm.nih.gov/refseq/targetedloci/) | Archaeal, bacterial and fungal  ribosomal RNA loci (16S rDNA, 18S rDNA (SSU), 28S rDNA (LSU) gene and internal transcribed spacer (ITS)) | [Resources](https://www.ncbi.nlm.nih.gov/refseq/targetedloci/) | [2025-01-01](https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump_archive/)| Kraken2, minimap2 |
+| [SILVA_138_1](https://www.arb-silva.de/) | aligned small (16S/18S, SSU) ribosomal RNA (rRNA) sequences for Bacteria, Archaea and Eukarya. Version 138.1. As the SILVA database doesn't exceed genus level, the lowest taxonomic rank available for analysis is genus (`taxonomic_rank G`)| [See Citation and License](https://www.arb-silva.de/archive/release_138_1) | SILVA uses its own set of taxids, which do not match the NCBI taxids. The respective taxdump files are provided (database has been made using [kraken2](https://github.com/DerrickWood/kraken2/wiki/Manual#special-databases)), but if NCBI taxids are required, you can create them from the SILVA files ([NCBI](https://www.arb-silva.de/no_cache/download/archive/current/Exports/taxonomy/ncbi/)) | Kraken2, minimap2 |
+| [Greengenes2_plus](https://forum.qiime2.org/t/greengenes2-2024-09/31606) | [Greengenes2 database release 2024.09](https://forum.qiime2.org/t/greengenes2-2024-09/31606), supplemented with *Salmonella enterica* and *Sarcina perfringens* reference sequences from [GTDB release 226](https://gtdb.ecogenomic.org/stats/r226) used in the [ZymoBIOMICS Microbial Communities with 16S dataset blog post](https://epi2me.nanoporetech.com/zymo_16s_2025.09/) | [Greengenes2 Citation](https://greengenes2.ucsd.edu/), [Greengenes2 License](https://ftp.microbio.me/greengenes_release/current/00LICENSE) | Custom taxonomy DB | Kraken2, minimap2 |
+| [Standard-8](https://benlangmead.github.io/aws-indexes/k2) | Refseq archaea, bacteria, viral, plasmid, human1, UniVec_Core capped at 8 GB | [More Information](https://benlangmead.github.io/aws-indexes/k2#older-minikraken-indexes) | [2025-01-01](https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump_archive/) | Kraken2 |
+| [PlusPF-8](https://benlangmead.github.io/aws-indexes/k2) | Standard plus Refseq protozoa & fungi capped at 8 GB | [More Information](https://benlangmead.github.io/aws-indexes/k2#older-minikraken-indexes) | [2025-01-01](https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump_archive/) | Kraken2 |
+| [PlusPFP-8](https://benlangmead.github.io/aws-indexes/k2) | Standard plus Refseq protozoa, fungi & plant capped at 8 GB | [More Information](https://benlangmead.github.io/aws-indexes/k2#older-minikraken-indexes)| [2025-01-01](https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump_archive/)| Kraken2 |
+
+ See our [blog post](https://labs.epi2me.io/how-to-meta-offline/) for details on how to build and use a custom database.
 ### 4. Identify Antimicrobial Resistance Genes (AMR) (optional)
 
 The workflow can be used to determine the presence of acquired antimicrobial resistance (AMR) or virulence genes within the dataset. It uses [ABRicate](https://github.com/tseemann/abricate) to scan reads against a database of AMR/virulence genes.
